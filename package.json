@@ -1,0 +1,16 @@
+{
+  "name": "void-fracture-bot",
+  "version": "3.0.0",
+  "description": "╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮",
+  "main": "api/bot.js",
+  "scripts": {
+    "start": "node api/bot.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "pino": "^8.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
