@@ -42,7 +42,7 @@ const CONFIG = {
 // UNICODE BOMB
 // ============================================================
 function generateUnicodeBomb(size) {
-    const chars = ['ꦾ','࣯','𒈙','𒈚','𒈛','󠀀','󠀁','󠀂','꧁','༒','☬','꧂'];
+    const chars = ['ꦾ','࣯','𒈙','𒈚','𒈛','󠀀','','󠀂','꧁','༒','☬','꧂'];
     let result = '';
     for (let i = 0; i < size; i++) {
         result += chars[Math.floor(Math.random() * chars.length)];
