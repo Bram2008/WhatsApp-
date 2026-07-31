@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "node api/bot.js",
+    "healthcheckPath": "/api/bot?ping=true"
+  }
+}
